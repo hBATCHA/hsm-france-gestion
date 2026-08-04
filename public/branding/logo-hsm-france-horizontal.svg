@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 180" role="img" aria-labelledby="title desc">
+  <title id="title">Logo H.S.M.FRANCE</title>
+  <desc id="desc">Colis vert avec une pousse végétale, nom H.S.M.FRANCE et signature Import, Distribuer, Partager.</desc>
+  <defs>
+    <linearGradient id="boxFront" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F0FDF4"/>
+      <stop offset="1" stop-color="#BBF7D0"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(20 20)" fill="none" stroke="#166534" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <path fill="url(#boxFront)" d="M20 50 88 18l68 32v78l-68 32-68-32z"/>
+    <path d="M20 50l68 34 68-34M88 84v76M54 34l68 34"/>
+    <path d="M40 67v51M58 76v51M20 92h68M20 117h68" stroke-width="4" opacity=".75"/>
+    <path d="M112 90v34h26V90h-8v9h-10v-9z" fill="#166534"/>
+    <path d="M88 18V2"/>
+    <path d="M88 8c-18-1-26-10-29-22 16-1 27 6 29 22Z" fill="#22C55E"/>
+    <path d="M90 7c18-2 28-12 31-25-17 0-28 8-31 25Z" fill="#15803D"/>
+  </g>
+  <g font-family="Inter, Arial, sans-serif">
+    <text x="205" y="92" fill="#166534" font-size="58" font-weight="700" letter-spacing="1">H.S.M.FRANCE</text>
+    <text x="208" y="132" fill="#64748B" font-size="20" font-weight="600" letter-spacing="4">IMPORT • DISTRIBUER • PARTAGER</text>
+  </g>
+</svg>
