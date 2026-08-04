@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-labelledby="title desc">
+  <title id="title">Icône H.S.M.FRANCE</title>
+  <desc id="desc">Colis vert avec une pousse végétale.</desc>
+  <defs>
+    <linearGradient id="boxFront" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F0FDF4"/>
+      <stop offset="1" stop-color="#BBF7D0"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(22 30)" fill="none" stroke="#166534" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <path fill="url(#boxFront)" d="M12 48 78 16l66 32v76l-66 32-66-32z"/>
+    <path d="M12 48l66 33 66-33M78 81v75M45 32l66 33"/>
+    <path d="M31 66v50M49 75v50M12 91h66M12 116h66" stroke-width="4" opacity=".75"/>
+    <path d="M101 87v34h26V87h-8v9h-10v-9z" fill="#166534"/>
+    <path d="M78 16V0"/>
+    <path d="M78 7C60 6 51-3 48-15 64-16 76-9 78 7Z" fill="#22C55E"/>
+    <path d="M80 6c18-2 28-12 31-25-17 0-28 8-31 25Z" fill="#15803D"/>
+  </g>
+</svg>
