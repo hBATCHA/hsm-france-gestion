@@ -1,0 +1,14 @@
+# Variables d'environnement
+.env
+.env.local
+.env.*.local
+
+# Dépendances
+node_modules/
+
+# Build
+dist/
+frontend/dist/
+
+# OS
+.DS_Store
