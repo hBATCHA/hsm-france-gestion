@@ -5,9 +5,9 @@ Ce dossier regroupe la direction visuelle du MVP.
 ## Ressources
 
 - [Galerie HTML des quatorze écrans](mockups/index.html)
-- [Charte graphique complète](../../CHARTE_GRAPHIQUE.md)
-- Logo horizontal : `../../public/branding/logo-hsm-france-horizontal.svg`
-- Icône : `../../public/branding/logo-hsm-france-icon.svg`
+- [Charte graphique complète](../CHARTE_GRAPHIQUE.md)
+- Logo horizontal : `../public/branding/logo-hsm-france-horizontal.svg`
+- Icône : `../public/branding/logo-hsm-france-icon.svg`
 
 ## Écrans de référence
 

@@ -15,10 +15,10 @@ Le parcours principal est volontairement simple :
 
 ## Documentation
 
-- [Cahier des charges du MVP](docs/requirements/CAHIER_DES_CHARGES.md)
-- [Stack technique recommandée](docs/architecture/STACK_TECHNIQUE.md)
-- [Guide design et liste des écrans](docs/design/README.md)
-- [Galerie des 14 maquettes](docs/design/mockups/index.html)
+- [Cahier des charges du MVP](requirements/CAHIER_DES_CHARGES.md)
+- [Stack technique recommandée](architecture/STACK_TECHNIQUE.md)
+- [Guide design et liste des écrans](design/README.md)
+- [Galerie des 14 maquettes](design/mockups/index.html)
 - [Charte graphique complète](CHARTE_GRAPHIQUE.md)
 - [Spécification PDF initiale](MVP%20simple%20%E2%80%94%20H.S.M.FRANCE.pdf)
 
