@@ -67,3 +67,13 @@ export async function archiveProduct(id: string) {
   revalidatePath("/produits")
   redirect("/produits")
 }
+
+export async function unarchiveProduct(id: string) {
+  await prisma.product.update({
+    where: { id },
+    data: { archived: false },
+  })
+
+  revalidatePath("/archives")
+  revalidatePath("/produits")
+}
