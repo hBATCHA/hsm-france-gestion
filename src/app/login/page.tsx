@@ -56,7 +56,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
-              className="h-12 px-4 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/10 disabled:opacity-60"
+              className="h-12 px-4 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/10 disabled:opacity-60"
             />
           </div>
 
@@ -72,7 +72,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
-              className="h-12 px-4 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/10 disabled:opacity-60"
+              className="h-12 px-4 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/10 disabled:opacity-60"
             />
           </div>
 
