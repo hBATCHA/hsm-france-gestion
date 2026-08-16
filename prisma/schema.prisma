@@ -8,6 +8,23 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model CompanySettings {
+  id        String   @id @default("default")
+  name      String   @default("")
+  legalForm String   @default("")
+  capital   String   @default("")
+  address   String   @default("")
+  siret     String   @default("")
+  vatNumber String   @default("")
+  rcs       String   @default("")
+  iban      String   @default("")
+  bic       String   @default("")
+  bank      String   @default("")
+  email     String   @default("")
+  phone     String   @default("")
+  updatedAt DateTime @updatedAt
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -17,36 +34,97 @@ model User {
 }
 
 model Product {
-  id             String   @id @default(cuid())
-  name           String
-  reference      String?
-  category       String?
-  brand          String?
-  variety        String?
-  packaging      String?
-  purchasePrice  Decimal  @default(0) @db.Decimal(10, 2)
-  sellingPrice   Decimal  @default(0) @db.Decimal(10, 2)
-  vatRate        Decimal  @default(5.5) @db.Decimal(5, 2)
-  stock          Int      @default(0)
-  alertThreshold Int      @default(0)
-  archived       Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                String             @id @default(cuid())
+  name              String
+  reference         String?
+  category          String?
+  brand             String?
+  variety           String?
+  packaging         String?
+  purchasePrice     Decimal            @default(0) @db.Decimal(10, 2)
+  sellingPrice      Decimal            @default(0) @db.Decimal(10, 2)
+  vatRate           Decimal            @default(5.5) @db.Decimal(5, 2)
+  stock             Int                @default(0)
+  alertThreshold    Int                @default(0)
+  archived          Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deliveryNoteLines DeliveryNoteLine[]
+  invoiceLines      InvoiceLine[]
 }
 
 model Customer {
-  id                 String   @id @default(cuid())
-  companyName        String
-  contactName        String?
-  email              String?
-  phone              String?
-  siret              String?
-  vatNumber          String?
-  billingAddress     String?
-  deliveryAddress    String?
-  paymentDelay       Int      @default(30)
-  notes              String?
-  archived           Boolean  @default(false)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id              String         @id @default(cuid())
+  companyName     String
+  contactName     String?
+  email           String?
+  phone           String?
+  siret           String?
+  vatNumber       String?
+  billingAddress  String?
+  deliveryAddress String?
+  paymentDelay    Int            @default(30)
+  notes           String?
+  archived        Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deliveryNotes   DeliveryNote[]
+  invoices        Invoice[]
+}
+
+model DeliveryNote {
+  id         String             @id @default(cuid())
+  number     String             @unique
+  date       DateTime           @default(now())
+  customerId String
+  customer   Customer           @relation(fields: [customerId], references: [id])
+  lines      DeliveryNoteLine[]
+  notes      String?
+  invoiced   Boolean            @default(false)
+  invoice    Invoice?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+}
+
+model DeliveryNoteLine {
+  id             String       @id @default(cuid())
+  deliveryNoteId String
+  deliveryNote   DeliveryNote @relation(fields: [deliveryNoteId], references: [id], onDelete: Cascade)
+  productId      String
+  product        Product      @relation(fields: [productId], references: [id])
+  quantity       Int
+  unitPrice      Decimal      @db.Decimal(10, 2)
+  vatRate        Decimal      @db.Decimal(5, 2)
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  number         String        @unique
+  date           DateTime      @default(now())
+  dueDate        DateTime
+  customerId     String
+  customer       Customer      @relation(fields: [customerId], references: [id])
+  deliveryNoteId String?       @unique
+  deliveryNote   DeliveryNote? @relation(fields: [deliveryNoteId], references: [id])
+  lines          InvoiceLine[]
+  status         String        @default("en attente")
+  totalHT        Decimal       @db.Decimal(10, 2)
+  totalTVA       Decimal       @db.Decimal(10, 2)
+  totalTTC       Decimal       @db.Decimal(10, 2)
+  notes          String?
+  paidAt         DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model InvoiceLine {
+  id        String   @id @default(cuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+  label     String
+  quantity  Int
+  unitPrice Decimal  @db.Decimal(10, 2)
+  vatRate   Decimal  @db.Decimal(5, 2)
 }
