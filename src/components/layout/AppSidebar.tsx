@@ -7,11 +7,9 @@ import {
   House,
   Users,
   Package,
-  Layers,
   ClipboardList,
   FileText,
-  Banknote,
-  Download,
+  Archive,
   Settings,
   LogOut,
 } from "lucide-react"
@@ -20,11 +18,9 @@ const navItems = [
   { href: "/dashboard", icon: House, label: "Tableau de bord" },
   { href: "/clients", icon: Users, label: "Clients" },
   { href: "/produits", icon: Package, label: "Produits" },
-  { href: "/stock", icon: Layers, label: "Stock" },
   { href: "/bons-de-livraison", icon: ClipboardList, label: "Bons de livraison" },
   { href: "/factures", icon: FileText, label: "Factures" },
-  { href: "/paiements", icon: Banknote, label: "Paiements" },
-  { href: "/exports", icon: Download, label: "Exports" },
+  { href: "/archives", icon: Archive, label: "Archives" },
   { href: "/parametres", icon: Settings, label: "Paramètres" },
 ]
 

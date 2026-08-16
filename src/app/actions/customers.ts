@@ -81,3 +81,13 @@ export async function archiveCustomer(id: string) {
   revalidatePath("/clients")
   redirect("/clients")
 }
+
+export async function unarchiveCustomer(id: string) {
+  await prisma.customer.update({
+    where: { id },
+    data: { archived: false },
+  })
+
+  revalidatePath("/archives")
+  revalidatePath("/clients")
+}
