@@ -46,12 +46,14 @@ export default async function BonsLivraisonPage() {
                 <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Client</th>
                 <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Date</th>
                 <th className="text-right text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Total HT</th>
+                <th className="text-right text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Total TTC</th>
                 <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Statut</th>
               </tr>
             </thead>
             <tbody>
               {bons.map(bon => {
                 const totalHT = bon.lines.reduce((acc, l) => acc + l.quantity * Number(l.unitPrice), 0)
+                const totalTTC = bon.lines.reduce((acc, l) => acc + l.quantity * Number(l.unitPrice) * (1 + Number(l.vatRate) / 100), 0)
                 return (
                   <tr key={bon.id} className="hover:bg-[#f8fafc] transition-colors">
                     <td className="px-6 py-4 border-b border-[#e2e8f0]">
@@ -67,6 +69,9 @@ export default async function BonsLivraisonPage() {
                     </td>
                     <td className="px-6 py-4 border-b border-[#e2e8f0] text-sm text-right font-medium text-[#111827]">
                       {totalHT.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                    </td>
+                    <td className="px-6 py-4 border-b border-[#e2e8f0] text-sm text-right font-medium text-[#111827]">
+                      {totalTTC.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
                     </td>
                     <td className="px-6 py-4 border-b border-[#e2e8f0]">
                       {bon.invoiced ? (

@@ -61,6 +61,7 @@ export default async function FacturesPage() {
                 <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Client</th>
                 <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Date</th>
                 <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Échéance</th>
+                <th className="text-right text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Total HT</th>
                 <th className="text-right text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Total TTC</th>
                 <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Statut</th>
               </tr>
@@ -85,6 +86,9 @@ export default async function FacturesPage() {
                       <span className={isOverdue ? "text-[#dc2626] font-medium" : ""}>
                         {new Date(facture.dueDate).toLocaleDateString("fr-FR")}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 border-b border-[#e2e8f0] text-sm text-right font-medium text-[#111827]">
+                      {Number(facture.totalHT).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
                     </td>
                     <td className="px-6 py-4 border-b border-[#e2e8f0] text-sm text-right font-medium text-[#111827]">
                       {Number(facture.totalTTC).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
