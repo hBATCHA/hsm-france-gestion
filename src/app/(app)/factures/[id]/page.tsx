@@ -2,7 +2,9 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { markAsPaid } from "@/app/actions/invoices"
+import { addPayment } from "@/app/actions/payments"
 import { CheckCircle, Download } from "lucide-react"
+import PaymentHistory from "./PaymentHistory"
 
 export default async function FactureDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -12,13 +14,18 @@ export default async function FactureDetailPage({ params }: { params: Promise<{ 
       customer: true,
       lines: true,
       deliveryNote: true,
+      payments: { orderBy: { date: "asc" } },
     },
   })
 
   if (!facture) notFound()
 
   const isOverdue = facture.status === "en attente" && new Date(facture.dueDate) < new Date()
+  const totalPaid = facture.payments.reduce((acc, p) => acc + Number(p.amount), 0)
+  const remaining = Number(facture.totalTTC) - totalPaid
+
   const pay = markAsPaid.bind(null, id)
+  const addPay = addPayment.bind(null, id)
 
   return (
     <div>
@@ -55,7 +62,14 @@ export default async function FactureDetailPage({ params }: { params: Promise<{ 
             className="flex items-center gap-2 h-10 px-4 border border-[#e2e8f0] text-sm font-medium text-[#64748b] rounded-[10px] hover:bg-[#f8fafc] transition-colors"
           >
             <Download size={16} />
-            Télécharger PDF
+            PDF avec paiements
+          </a>
+          <a
+            href={`/api/factures/${id}/pdf?original=true`}
+            className="flex items-center gap-2 h-10 px-4 border border-[#e2e8f0] text-sm font-medium text-[#64748b] rounded-[10px] hover:bg-[#f8fafc] transition-colors"
+          >
+            <Download size={16} />
+            PDF original
           </a>
           {facture.deliveryNote && (
             <Link
@@ -70,6 +84,7 @@ export default async function FactureDetailPage({ params }: { params: Promise<{ 
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 flex flex-col gap-6">
+          {/* Lignes */}
           <div className="bg-white border border-[#e2e8f0] rounded-[14px] overflow-hidden shadow-sm">
             <table className="w-full border-collapse">
               <thead>
@@ -97,6 +112,81 @@ export default async function FactureDetailPage({ params }: { params: Promise<{ 
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Historique des paiements */}
+          <div className="bg-white border border-[#e2e8f0] rounded-[14px] p-6 shadow-sm">
+            <h3 className="text-base font-semibold text-[#111827] mb-4">Paiements</h3>
+
+            <PaymentHistory
+              payments={facture.payments.map(p => ({ ...p, amount: Number(p.amount) }))}
+              invoiceId={id}
+            />
+            {remaining > 0 && facture.payments.length > 0 && (
+              <div className="flex justify-between text-sm mb-4">
+                <span className="text-[#64748b]">Reste à payer</span>
+                <span className="font-bold text-[#dc2626]">
+                  {remaining.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                </span>
+              </div>
+            )}
+
+            {facture.status !== "payée" && (
+              <form action={addPay} className="flex flex-col gap-3">
+                <p className="text-sm font-medium text-[#111827]">Enregistrer un paiement</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-[#64748b]">Montant (€)</label>
+                    <input
+                      name="amount"
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      required
+                      defaultValue={remaining > 0 ? remaining.toFixed(2) : ""}
+                      className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534]"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-[#64748b]">Date</label>
+                    <input
+                      name="date"
+                      type="date"
+                      required
+                      defaultValue={new Date().toISOString().split("T")[0]}
+                      className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534]"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-[#64748b]">Moyen de paiement</label>
+                    <select
+                      name="method"
+                      className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] bg-white"
+                    >
+                      <option value="virement">Virement</option>
+                      <option value="chèque">Chèque</option>
+                      <option value="espèces">Espèces</option>
+                      <option value="carte">Carte</option>
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-[#64748b]">Note (optionnel)</label>
+                    <input
+                      name="note"
+                      type="text"
+                      placeholder="Ex : chèque n°1234"
+                      className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534]"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  className="h-10 bg-[#166534] hover:bg-[#14532d] text-white text-sm font-semibold rounded-lg transition-colors"
+                >
+                  Enregistrer le paiement
+                </button>
+              </form>
+            )}
           </div>
 
           {facture.notes && (
@@ -129,7 +219,7 @@ export default async function FactureDetailPage({ params }: { params: Promise<{ 
             {isOverdue && <p className="text-xs text-[#dc2626] mt-1">Paiement en retard</p>}
             {facture.paidAt && (
               <p className="text-xs text-[#64748b] mt-2">
-                Payée le {new Date(facture.paidAt).toLocaleDateString("fr-FR")}
+                Soldée le {new Date(facture.paidAt).toLocaleDateString("fr-FR")}
               </p>
             )}
           </div>
@@ -154,6 +244,22 @@ export default async function FactureDetailPage({ params }: { params: Promise<{ 
                   {Number(facture.totalTTC).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
                 </span>
               </div>
+              {totalPaid > 0 && (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#64748b]">Payé</span>
+                    <span className="font-medium text-[#15803d]">
+                      {totalPaid.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm border-t border-[#dcfce7] pt-2">
+                    <span className="font-semibold text-[#111827]">Reste à payer</span>
+                    <span className={`font-bold ${remaining > 0 ? "text-[#dc2626]" : "text-[#15803d]"}`}>
+                      {remaining.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

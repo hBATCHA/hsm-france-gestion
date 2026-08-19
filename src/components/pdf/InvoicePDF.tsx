@@ -244,6 +244,7 @@ type InvoiceData = {
     vatRate: number
   }[]
   deliveryNote?: { number: string } | null
+  payments?: { amount: number; date: Date | string; method: string; note?: string | null }[]
 }
 
 function fmt(n: number) {
@@ -372,6 +373,33 @@ function InvoicePDF({ facture, company }: { facture: InvoiceData; company: Compa
             </View>
           </View>
         </View>
+
+        {/* Historique des paiements */}
+        {facture.payments && facture.payments.length > 0 && (() => {
+          const totalPaid = facture.payments!.reduce((acc, p) => acc + p.amount, 0)
+          const remaining = facture.totalTTC - totalPaid
+          return (
+            <View style={{ ...styles.notes, marginBottom: 16 }}>
+              <Text style={{ ...styles.notesLabel, marginBottom: 6 }}>Historique des paiements</Text>
+              {facture.payments!.map((p, i) => (
+                <View key={i} style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 3 }}>
+                  <Text style={{ fontSize: 9, color: "#64748b" }}>
+                    {new Date(p.date).toLocaleDateString("fr-FR")} · {p.method}{p.note ? ` · ${p.note}` : ""}
+                  </Text>
+                  <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold", color: "#111827" }}>{fmt(p.amount)}</Text>
+                </View>
+              ))}
+              <View style={{ borderTopWidth: 1, borderTopColor: "#e2e8f0", marginTop: 6, paddingTop: 6, flexDirection: "row", justifyContent: "space-between" }}>
+                <Text style={{ fontSize: 9, color: "#64748b" }}>Total payé</Text>
+                <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold", color: "#166534" }}>{fmt(totalPaid)}</Text>
+              </View>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 3 }}>
+                <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold", color: "#111827" }}>Reste à payer</Text>
+                <Text style={{ fontSize: 10, fontFamily: "Helvetica-Bold", color: remaining > 0 ? "#dc2626" : "#166534" }}>{fmt(remaining)}</Text>
+              </View>
+            </View>
+          )
+        })()}
 
         {/* Notes */}
         {facture.notes && (

@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { generateInvoicePDF } from "@/components/pdf/InvoicePDF"
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const original = req.nextUrl.searchParams.get("original") === "true"
 
   const [facture, settings] = await Promise.all([
     prisma.invoice.findUnique({
       where: { id },
-      include: { customer: true, lines: true, deliveryNote: true },
+      include: { customer: true, lines: true, deliveryNote: true, payments: { orderBy: { date: "asc" } } },
     }),
     prisma.companySettings.findUnique({ where: { id: "default" } }),
   ])
@@ -49,6 +50,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         vatRate: Number(l.vatRate),
       })),
       deliveryNote: facture.deliveryNote ? { number: facture.deliveryNote.number } : null,
+      payments: original ? [] : facture.payments.map(p => ({
+        amount: Number(p.amount),
+        date: p.date,
+        method: p.method,
+        note: p.note,
+      })),
     },
     company
   )
