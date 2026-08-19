@@ -4,15 +4,6 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
-async function generateInvoiceNumber(): Promise<string> {
-  const count = await prisma.invoice.count()
-  const num = String(count + 1).padStart(4, "0")
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, "0")
-  return `FA-${year}${month}-${num}`
-}
-
 export async function createInvoiceFromDeliveryNote(deliveryNoteId: string) {
   const bl = await prisma.deliveryNote.findUnique({
     where: { id: deliveryNoteId },
@@ -29,7 +20,7 @@ export async function createInvoiceFromDeliveryNote(deliveryNoteId: string) {
   const dueDate = new Date()
   dueDate.setDate(dueDate.getDate() + bl.customer.paymentDelay)
 
-  const number = await generateInvoiceNumber()
+  const number = bl.number.replace(/^BL/, "FA")
 
   const invoice = await prisma.invoice.create({
     data: {
