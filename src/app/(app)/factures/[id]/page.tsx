@@ -92,6 +92,7 @@ export default async function FactureDetailPage({ params }: { params: Promise<{ 
                   <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Désignation</th>
                   <th className="text-right text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Qté</th>
                   <th className="text-right text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Prix HT</th>
+                  <th className="text-right text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Remise</th>
                   <th className="text-right text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">TVA</th>
                   <th className="text-right text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Total HT</th>
                 </tr>
@@ -104,9 +105,12 @@ export default async function FactureDetailPage({ params }: { params: Promise<{ 
                     <td className="px-6 py-4 text-sm text-right text-[#111827]">
                       {Number(line.unitPrice).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
                     </td>
+                    <td className="px-6 py-4 text-sm text-right text-[#64748b]">
+                      {Number(line.discount) > 0 ? `${Number(line.discount)} %` : "—"}
+                    </td>
                     <td className="px-6 py-4 text-sm text-right text-[#64748b]">{Number(line.vatRate)} %</td>
                     <td className="px-6 py-4 text-sm text-right font-medium text-[#111827]">
-                      {(line.quantity * Number(line.unitPrice)).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                      {(line.quantity * Number(line.unitPrice) * (1 - Number(line.discount) / 100)).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
                     </td>
                   </tr>
                 ))}
@@ -139,9 +143,8 @@ export default async function FactureDetailPage({ params }: { params: Promise<{ 
                     <label className="text-xs font-medium text-[#64748b]">Montant (€)</label>
                     <input
                       name="amount"
-                      type="number"
-                      step="0.01"
-                      min="0.01"
+                      type="text"
+                      inputMode="decimal"
                       required
                       defaultValue={remaining > 0 ? remaining.toFixed(2) : ""}
                       className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534]"
@@ -232,6 +235,14 @@ export default async function FactureDetailPage({ params }: { params: Promise<{ 
                   {Number(facture.totalHT).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
                 </span>
               </div>
+              {Number(facture.globalDiscount) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-[#64748b]">Remise globale ({Number(facture.globalDiscount)} %)</span>
+                  <span className="font-medium text-[#dc2626]">
+                    -{(Number(facture.totalHT) / (1 - Number(facture.globalDiscount) / 100) * (Number(facture.globalDiscount) / 100)).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-[#64748b]">TVA</span>
                 <span className="font-medium text-[#111827]">

@@ -242,7 +242,9 @@ type InvoiceData = {
     quantity: number
     unitPrice: number
     vatRate: number
+    discount: number
   }[]
+  globalDiscount?: number
   deliveryNote?: { number: string } | null
   payments?: { amount: number; date: Date | string; method: string; note?: string | null }[]
 }
@@ -326,6 +328,7 @@ function InvoicePDF({ facture, company }: { facture: InvoiceData; company: Compa
             <Text style={styles.colLabel}>Désignation</Text>
             <Text style={styles.colQty}>Qté</Text>
             <Text style={styles.colPrice}>Prix HT</Text>
+            <Text style={styles.colTva}>Remise</Text>
             <Text style={styles.colTva}>TVA</Text>
             <Text style={styles.colTotal}>Total HT</Text>
           </View>
@@ -334,8 +337,9 @@ function InvoicePDF({ facture, company }: { facture: InvoiceData; company: Compa
               <Text style={styles.cellLabel}>{line.label}</Text>
               <Text style={styles.cellQty}>{line.quantity}</Text>
               <Text style={styles.cellPrice}>{fmt(line.unitPrice)}</Text>
+              <Text style={styles.cellTva}>{line.discount > 0 ? `${line.discount} %` : "—"}</Text>
               <Text style={styles.cellTva}>{line.vatRate} %</Text>
-              <Text style={styles.cellTotal}>{fmt(line.quantity * line.unitPrice)}</Text>
+              <Text style={styles.cellTotal}>{fmt(line.quantity * line.unitPrice * (1 - line.discount / 100))}</Text>
             </View>
           ))}
         </View>
@@ -362,6 +366,12 @@ function InvoicePDF({ facture, company }: { facture: InvoiceData; company: Compa
               <Text style={styles.totalLabel}>Total HT</Text>
               <Text style={styles.totalValue}>{fmt(facture.totalHT)}</Text>
             </View>
+            {facture.globalDiscount && facture.globalDiscount > 0 ? (
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Remise globale ({facture.globalDiscount} %)</Text>
+                <Text style={[styles.totalValue, { color: "#dc2626" }]}>-{fmt(facture.totalHT / (1 - facture.globalDiscount / 100) * (facture.globalDiscount / 100))}</Text>
+              </View>
+            ) : null}
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>TVA</Text>
               <Text style={styles.totalValue}>{fmt(facture.totalTVA)}</Text>

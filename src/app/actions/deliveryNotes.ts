@@ -17,9 +17,10 @@ export async function createDeliveryNote(data: {
   customerId: string
   date: string
   notes: string
-  lines: { productId: string; quantity: number; unitPrice: number; vatRate: number }[]
+  globalDiscount: number
+  lines: { productId: string; quantity: number; unitPrice: number; vatRate: number; discount: number }[]
 }) {
-  const { customerId, date, notes, lines } = data
+  const { customerId, date, notes, globalDiscount, lines } = data
 
   if (!customerId) throw new Error("Client obligatoire")
   if (lines.length === 0 || lines.some(l => !l.productId)) throw new Error("Toutes les lignes doivent avoir un produit")
@@ -32,12 +33,14 @@ export async function createDeliveryNote(data: {
       date: date ? new Date(date) : new Date(),
       customerId,
       notes: notes || null,
+      globalDiscount,
       lines: {
         create: lines.map(l => ({
           productId: l.productId,
           quantity: l.quantity,
           unitPrice: l.unitPrice,
           vatRate: l.vatRate,
+          discount: l.discount,
         })),
       },
     },
