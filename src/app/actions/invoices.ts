@@ -13,8 +13,9 @@ export async function createInvoiceFromDeliveryNote(deliveryNoteId: string) {
   if (!bl) throw new Error("Bon de livraison introuvable")
   if (bl.invoiced) throw new Error("Ce bon de livraison est déjà facturé")
 
-  const totalHT = bl.lines.reduce((acc, l) => acc + l.quantity * Number(l.unitPrice), 0)
-  const totalTVA = bl.lines.reduce((acc, l) => acc + l.quantity * Number(l.unitPrice) * Number(l.vatRate) / 100, 0)
+  const gd = 1 - Number(bl.globalDiscount) / 100
+  const totalHT = bl.lines.reduce((acc, l) => acc + l.quantity * Number(l.unitPrice) * (1 - Number(l.discount) / 100) * gd, 0)
+  const totalTVA = bl.lines.reduce((acc, l) => acc + l.quantity * Number(l.unitPrice) * (1 - Number(l.discount) / 100) * gd * Number(l.vatRate) / 100, 0)
   const totalTTC = totalHT + totalTVA
 
   const dueDate = new Date()
@@ -28,6 +29,7 @@ export async function createInvoiceFromDeliveryNote(deliveryNoteId: string) {
       dueDate,
       customerId: bl.customerId,
       deliveryNoteId: bl.id,
+      globalDiscount: bl.globalDiscount,
       totalHT,
       totalTVA,
       totalTTC,
@@ -38,6 +40,7 @@ export async function createInvoiceFromDeliveryNote(deliveryNoteId: string) {
           quantity: l.quantity,
           unitPrice: l.unitPrice,
           vatRate: l.vatRate,
+          discount: l.discount,
         })),
       },
     },

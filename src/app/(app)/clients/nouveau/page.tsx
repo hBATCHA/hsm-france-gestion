@@ -105,9 +105,9 @@ export default function NouveauClientPage() {
                   <label className="text-sm font-semibold text-[#111827]">Délai de paiement (jours)</label>
                   <input
                     name="paymentDelay"
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     defaultValue={30}
-                    min={0}
                     className="h-12 px-4 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/10"
                   />
                 </div>

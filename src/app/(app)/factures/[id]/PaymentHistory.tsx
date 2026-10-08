@@ -42,7 +42,7 @@ export default function PaymentHistory({ payments, invoiceId }: { payments: Paym
               <div className="grid grid-cols-2 gap-2 mb-2">
                 <div className="flex flex-col gap-1">
                   <label className="text-xs text-[#64748b]">Montant (€)</label>
-                  <input name="amount" type="number" step="0.01" min="0.01" required defaultValue={p.amount}
+                  <input name="amount" type="text" inputMode="decimal" required defaultValue={p.amount}
                     className="h-9 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534]" />
                 </div>
                 <div className="flex flex-col gap-1">
