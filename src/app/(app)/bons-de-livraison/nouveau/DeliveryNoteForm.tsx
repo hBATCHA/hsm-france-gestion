@@ -20,9 +20,10 @@ type Customer = {
 
 type Line = {
   productId: string
-  quantity: number
-  unitPrice: number
-  vatRate: number
+  quantity: string
+  unitPrice: string
+  vatRate: string
+  discount: string
 }
 
 export default function DeliveryNoteForm({ customers, products }: { customers: Customer[]; products: Product[] }) {
@@ -30,21 +31,22 @@ export default function DeliveryNoteForm({ customers, products }: { customers: C
   const [customerId, setCustomerId] = useState("")
   const [date, setDate] = useState(new Date().toISOString().split("T")[0])
   const [notes, setNotes] = useState("")
-  const [lines, setLines] = useState<Line[]>([{ productId: "", quantity: 1, unitPrice: 0, vatRate: 5.5 }])
+  const [globalDiscount, setGlobalDiscount] = useState("0")
+  const [lines, setLines] = useState<Line[]>([{ productId: "", quantity: "1", unitPrice: "0", vatRate: "5.5", discount: "0" }])
 
-  const addLine = () => setLines([...lines, { productId: "", quantity: 1, unitPrice: 0, vatRate: 5.5 }])
+  const addLine = () => setLines([...lines, { productId: "", quantity: "1", unitPrice: "0", vatRate: "5.5", discount: "0" }])
 
   const removeLine = (i: number) => setLines(lines.filter((_, idx) => idx !== i))
 
-  const updateLine = (i: number, field: keyof Line, value: string | number) => {
+  const updateLine = (i: number, field: keyof Line, value: string) => {
     const updated = [...lines]
     if (field === "productId") {
       const product = products.find(p => p.id === value)
       updated[i] = {
         ...updated[i],
-        productId: value as string,
-        unitPrice: product ? product.sellingPrice : updated[i].unitPrice,
-        vatRate: product ? product.vatRate : updated[i].vatRate,
+        productId: value,
+        unitPrice: product ? String(product.sellingPrice) : updated[i].unitPrice,
+        vatRate: product ? String(product.vatRate) : updated[i].vatRate,
       }
     } else {
       updated[i] = { ...updated[i], [field]: value }
@@ -55,12 +57,25 @@ export default function DeliveryNoteForm({ customers, products }: { customers: C
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     startTransition(async () => {
-      await createDeliveryNote({ customerId, date, notes, lines })
+      await createDeliveryNote({
+        customerId,
+        date,
+        notes,
+        globalDiscount: parseFloat(globalDiscount) || 0,
+        lines: lines.map(l => ({
+          productId: l.productId,
+          quantity: parseInt(l.quantity) || 1,
+          unitPrice: parseFloat(l.unitPrice) || 0,
+          vatRate: parseFloat(l.vatRate) || 0,
+          discount: parseFloat(l.discount) || 0,
+        })),
+      })
     })
   }
 
-  const totalHT = lines.reduce((acc, l) => acc + l.quantity * l.unitPrice, 0)
-  const totalTVA = lines.reduce((acc, l) => acc + l.quantity * l.unitPrice * l.vatRate / 100, 0)
+  const gd = 1 - (parseFloat(globalDiscount) || 0) / 100
+  const totalHT = lines.reduce((acc, l) => acc + (parseInt(l.quantity) || 0) * (parseFloat(l.unitPrice) || 0) * (1 - (parseFloat(l.discount) || 0) / 100) * gd, 0)
+  const totalTVA = lines.reduce((acc, l) => acc + (parseInt(l.quantity) || 0) * (parseFloat(l.unitPrice) || 0) * (1 - (parseFloat(l.discount) || 0) / 100) * gd * (parseFloat(l.vatRate) || 0) / 100, 0)
 
   return (
     <form onSubmit={handleSubmit}>
@@ -109,15 +124,21 @@ export default function DeliveryNoteForm({ customers, products }: { customers: C
             </div>
 
             <div className="flex flex-col gap-3">
-              <div className="grid grid-cols-[1fr_70px_110px_70px_36px] gap-2">
+              <div className="grid grid-cols-[1fr_60px_100px_70px_65px_90px_80px_36px] gap-2">
                 <p className="text-xs font-medium text-[#64748b]">Produit</p>
                 <p className="text-xs font-medium text-[#64748b]">Qté</p>
                 <p className="text-xs font-medium text-[#64748b]">Prix HT (€)</p>
+                <p className="text-xs font-medium text-[#64748b]">Remise (%)</p>
                 <p className="text-xs font-medium text-[#64748b]">TVA (%)</p>
+                <p className="text-xs font-medium text-[#64748b]">Total HT</p>
+                <p className="text-xs font-medium text-[#64748b]">Total TVA</p>
                 <span />
               </div>
-              {lines.map((line, i) => (
-                <div key={i} className="grid grid-cols-[1fr_70px_110px_70px_36px] gap-2 items-center">
+              {lines.map((line, i) => {
+                const lineHT = (parseInt(line.quantity) || 0) * (parseFloat(line.unitPrice) || 0) * (1 - (parseFloat(line.discount) || 0) / 100)
+                const lineTVA = lineHT * (parseFloat(line.vatRate) || 0) / 100
+                return (
+                <div key={i} className="grid grid-cols-[1fr_60px_100px_70px_65px_90px_80px_36px] gap-2 items-center">
                   <select
                     required
                     value={line.productId}
@@ -130,31 +151,43 @@ export default function DeliveryNoteForm({ customers, products }: { customers: C
                     ))}
                   </select>
                   <input
-                    type="number"
-                    min="1"
+                    type="text"
+                    inputMode="numeric"
                     required
                     value={line.quantity}
-                    onChange={e => updateLine(i, "quantity", parseInt(e.target.value) || 1)}
+                    onChange={e => updateLine(i, "quantity", e.target.value)}
                     className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] text-center"
                   />
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type="text"
+                    inputMode="decimal"
                     required
                     value={line.unitPrice}
-                    onChange={e => updateLine(i, "unitPrice", parseFloat(e.target.value) || 0)}
+                    onChange={e => updateLine(i, "unitPrice", e.target.value)}
                     className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534]"
                   />
                   <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    required
-                    value={line.vatRate}
-                    onChange={e => updateLine(i, "vatRate", parseFloat(e.target.value) || 0)}
+                    type="text"
+                    inputMode="decimal"
+                    value={line.discount}
+                    onChange={e => updateLine(i, "discount", e.target.value)}
                     className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] text-center"
                   />
+                  <select
+                    required
+                    value={line.vatRate}
+                    onChange={e => updateLine(i, "vatRate", e.target.value)}
+                    className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] bg-white text-center"
+                  >
+                    <option value="5.5">5,5%</option>
+                    <option value="20">20%</option>
+                  </select>
+                  <p className="h-10 flex items-center justify-end text-sm font-medium text-[#111827]">
+                    {lineHT.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                  </p>
+                  <p className="h-10 flex items-center justify-end text-sm text-[#64748b]">
+                    {lineTVA.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                  </p>
                   <button
                     type="button"
                     onClick={() => removeLine(i)}
@@ -164,7 +197,8 @@ export default function DeliveryNoteForm({ customers, products }: { customers: C
                     <Trash2 size={16} />
                   </button>
                 </div>
-              ))}
+                )
+              })}
             </div>
           </div>
 
@@ -181,6 +215,19 @@ export default function DeliveryNoteForm({ customers, products }: { customers: C
         </div>
 
         <div className="flex flex-col gap-4">
+          <div className="bg-white border border-[#e2e8f0] rounded-[14px] p-6 shadow-sm">
+            <h3 className="text-base font-semibold text-[#111827] mb-4">Remise globale</h3>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                inputMode="decimal"
+                value={globalDiscount}
+                onChange={e => setGlobalDiscount(e.target.value)}
+                className="h-10 w-24 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] text-center"
+              />
+              <span className="text-sm text-[#64748b]">% sur le total</span>
+            </div>
+          </div>
           <div className="bg-white border border-[#e2e8f0] rounded-[14px] p-6 shadow-sm">
             <h3 className="text-base font-semibold text-[#111827] mb-4">Récapitulatif</h3>
             <div className="flex flex-col gap-3">

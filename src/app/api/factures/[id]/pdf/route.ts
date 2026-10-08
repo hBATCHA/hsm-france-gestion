@@ -43,11 +43,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       totalTVA: Number(facture.totalTVA),
       totalTTC: Number(facture.totalTTC),
       customer: facture.customer,
+      globalDiscount: Number(facture.globalDiscount),
       lines: facture.lines.map(l => ({
         label: l.label,
         quantity: l.quantity,
         unitPrice: Number(l.unitPrice),
         vatRate: Number(l.vatRate),
+        discount: Number(l.discount),
       })),
       deliveryNote: facture.deliveryNote ? { number: facture.deliveryNote.number } : null,
       payments: original ? [] : facture.payments.map(p => ({

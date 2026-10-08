@@ -58,23 +58,26 @@ export default async function ModifierProduitPage({ params }: { params: Promise<
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-semibold text-[#111827]">Prix d'achat (€ HT)</label>
-                  <input name="purchasePrice" type="number" step="0.01" min="0" defaultValue={Number(produit.purchasePrice)} className="h-12 px-4 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/10" />
+                  <input name="purchasePrice" type="text" inputMode="decimal" defaultValue={Number(produit.purchasePrice)} className="h-12 px-4 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/10" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-semibold text-[#111827]">Prix de vente (€ HT)</label>
-                  <input name="sellingPrice" type="number" step="0.01" min="0" defaultValue={Number(produit.sellingPrice)} className="h-12 px-4 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/10" />
+                  <input name="sellingPrice" type="text" inputMode="decimal" defaultValue={Number(produit.sellingPrice)} className="h-12 px-4 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/10" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-semibold text-[#111827]">TVA (%)</label>
-                  <input name="vatRate" type="number" step="0.1" min="0" defaultValue={Number(produit.vatRate)} className="h-12 px-4 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/10" />
+                  <select name="vatRate" defaultValue={String(Number(produit.vatRate))} className="h-12 px-4 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/10 bg-white">
+                    <option value="5.5">5,5%</option>
+                    <option value="20">20%</option>
+                  </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-semibold text-[#111827]">Seuil d'alerte</label>
-                  <input name="alertThreshold" type="number" min="0" defaultValue={produit.alertThreshold} className="h-12 px-4 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/10" />
+                  <input name="alertThreshold" type="text" inputMode="numeric" defaultValue={produit.alertThreshold} className="h-12 px-4 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/10" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-semibold text-[#111827]">Stock</label>
-                  <input name="stock" type="number" min="0" defaultValue={produit.stock} className="h-12 px-4 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/10" />
+                  <input name="stock" type="text" inputMode="numeric" defaultValue={produit.stock} className="h-12 px-4 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/10" />
                 </div>
               </div>
             </div>

@@ -73,17 +73,18 @@ model Customer {
 }
 
 model DeliveryNote {
-  id         String             @id @default(cuid())
-  number     String             @unique
-  date       DateTime           @default(now())
-  customerId String
-  customer   Customer           @relation(fields: [customerId], references: [id])
-  lines      DeliveryNoteLine[]
-  notes      String?
-  invoiced   Boolean            @default(false)
-  invoice    Invoice?
-  createdAt  DateTime           @default(now())
-  updatedAt  DateTime           @updatedAt
+  id             String             @id @default(cuid())
+  number         String             @unique
+  date           DateTime           @default(now())
+  customerId     String
+  customer       Customer           @relation(fields: [customerId], references: [id])
+  lines          DeliveryNoteLine[]
+  notes          String?
+  globalDiscount Decimal            @default(0) @db.Decimal(5, 2)
+  invoiced       Boolean            @default(false)
+  invoice        Invoice?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 }
 
 model DeliveryNoteLine {
@@ -95,6 +96,7 @@ model DeliveryNoteLine {
   quantity       Int
   unitPrice      Decimal      @db.Decimal(10, 2)
   vatRate        Decimal      @db.Decimal(5, 2)
+  discount       Decimal      @default(0) @db.Decimal(5, 2)
 }
 
 model Invoice {
@@ -109,6 +111,7 @@ model Invoice {
   lines          InvoiceLine[]
   payments       Payment[]
   status         String        @default("en attente")
+  globalDiscount Decimal       @default(0) @db.Decimal(5, 2)
   totalHT        Decimal       @db.Decimal(10, 2)
   totalTVA       Decimal       @db.Decimal(10, 2)
   totalTTC       Decimal       @db.Decimal(10, 2)
@@ -139,4 +142,5 @@ model InvoiceLine {
   quantity  Int
   unitPrice Decimal  @db.Decimal(10, 2)
   vatRate   Decimal  @db.Decimal(5, 2)
+  discount  Decimal  @default(0) @db.Decimal(5, 2)
 }
