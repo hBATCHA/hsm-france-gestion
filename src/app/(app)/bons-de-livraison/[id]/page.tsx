@@ -2,7 +2,8 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { createInvoiceFromDeliveryNote } from "@/app/actions/invoices"
-import { FileText } from "lucide-react"
+import { FileText, Download } from "lucide-react"
+import ActionButton from "@/components/ActionButton"
 
 export default async function BonLivraisonDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -21,8 +22,6 @@ export default async function BonLivraisonDetailPage({ params }: { params: Promi
   const totalTVA = bl.lines.reduce((acc, l) => acc + l.quantity * Number(l.unitPrice) * Number(l.vatRate) / 100, 0)
   const totalTTC = totalHT + totalTVA
 
-  const facturer = createInvoiceFromDeliveryNote.bind(null, bl.id)
-
   return (
     <div>
       <div className="flex items-start justify-between mb-6">
@@ -40,16 +39,23 @@ export default async function BonLivraisonDetailPage({ params }: { params: Promi
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            href={`/api/bons-de-livraison/${bl.id}/pdf`}
+            target="_blank"
+            className="flex items-center gap-2 h-10 px-4 border border-[#e2e8f0] text-[#64748b] text-sm font-semibold rounded-[10px] hover:bg-[#f8fafc] transition-colors"
+          >
+            <Download size={16} />
+            Télécharger BL
+          </Link>
           {!bl.invoiced && (
-            <form action={facturer}>
-              <button
-                type="submit"
-                className="flex items-center gap-2 h-10 px-4 bg-[#166534] hover:bg-[#14532d] text-white text-sm font-semibold rounded-[10px] transition-colors"
-              >
-                <FileText size={16} />
-                Facturer
-              </button>
-            </form>
+            <ActionButton
+              action={createInvoiceFromDeliveryNote.bind(null, bl.id)}
+              successMessage="Facture créée !"
+              className="flex items-center gap-2 h-10 px-4 bg-[#166534] hover:bg-[#14532d] text-white text-sm font-semibold rounded-[10px] transition-colors"
+            >
+              <FileText size={16} />
+              Facturer
+            </ActionButton>
           )}
           {bl.invoice && (
             <Link

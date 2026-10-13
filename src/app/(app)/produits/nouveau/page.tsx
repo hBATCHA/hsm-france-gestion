@@ -1,7 +1,18 @@
+"use client"
+
+import { useTransition } from "react"
 import { createProduct } from "@/app/actions/products"
+import { toast } from "sonner"
 import Link from "next/link"
 
 export default function NouveauProduitPage() {
+  const [isPending, startTransition] = useTransition()
+
+  function handleSubmit(formData: FormData) {
+    toast.success("Produit créé !")
+    startTransition(() => createProduct(formData))
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -11,10 +22,9 @@ export default function NouveauProduitPage() {
         </div>
       </div>
 
-      <form action={createProduct}>
+      <form action={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 flex flex-col gap-6">
-            {/* Informations produit */}
             <div className="bg-white border border-[#e2e8f0] rounded-[14px] p-6 shadow-sm">
               <h3 className="text-base font-semibold text-[#111827] mb-5">Informations produit</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -45,7 +55,6 @@ export default function NouveauProduitPage() {
               </div>
             </div>
 
-            {/* Tarification et stock */}
             <div className="bg-white border border-[#e2e8f0] rounded-[14px] p-6 shadow-sm">
               <h3 className="text-base font-semibold text-[#111827] mb-5">Tarification et stock</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -76,7 +85,6 @@ export default function NouveauProduitPage() {
             </div>
           </div>
 
-          {/* Colonne droite */}
           <div className="flex flex-col gap-4">
             <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-[14px] p-6">
               <h3 className="text-base font-semibold text-[#111827] mb-3">Statut</h3>
@@ -84,8 +92,8 @@ export default function NouveauProduitPage() {
               <p className="text-xs text-[#64748b] mt-3">Le produit sera actif dès sa création.</p>
             </div>
             <div className="flex flex-col gap-3">
-              <button type="submit" className="h-11 bg-[#166534] hover:bg-[#14532d] text-white text-sm font-semibold rounded-[10px] transition-colors">
-                Enregistrer le produit
+              <button type="submit" disabled={isPending} className="h-11 bg-[#166534] hover:bg-[#14532d] disabled:opacity-60 text-white text-sm font-semibold rounded-[10px] transition-colors">
+                {isPending ? "Enregistrement..." : "Enregistrer le produit"}
               </button>
               <Link href="/produits" className="h-11 flex items-center justify-center border border-[#e2e8f0] text-sm font-medium text-[#64748b] rounded-[10px] hover:bg-[#f8fafc] transition-colors">
                 Annuler
