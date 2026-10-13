@@ -9,9 +9,9 @@ export default function MarkAsPaidButton({ invoiceId }: { invoiceId: string }) {
   const [isPending, startTransition] = useTransition()
   const pay = markAsPaid.bind(null, invoiceId)
 
-  function handleSubmit(formData: FormData) {
+  function handleSubmit() {
     toast.success("Facture marquée comme payée !")
-    startTransition(() => pay(formData))
+    startTransition(() => pay())
   }
 
   return (
