@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { archiveCustomer } from "@/app/actions/customers"
 import { Pencil, Archive, Mail, Phone, MapPin, FileText } from "lucide-react"
+import ActionButton from "@/components/ActionButton"
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -34,15 +35,14 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             Modifier
           </Link>
           {!client.archived && (
-            <form action={async () => { "use server"; await archiveCustomer(id) }}>
-              <button
-                type="submit"
-                className="flex items-center gap-2 h-10 px-4 border border-[#e2e8f0] text-[#64748b] text-sm font-semibold rounded-[10px] hover:bg-[#fef2f2] hover:text-[#dc2626] hover:border-[#fecaca] transition-colors"
-              >
-                <Archive size={16} />
-                Archiver
-              </button>
-            </form>
+            <ActionButton
+              action={archiveCustomer.bind(null, id)}
+              successMessage="Client archivé !"
+              className="flex items-center gap-2 h-10 px-4 border border-[#e2e8f0] text-[#64748b] text-sm font-semibold rounded-[10px] hover:bg-[#fef2f2] hover:text-[#dc2626] hover:border-[#fecaca] transition-colors"
+            >
+              <Archive size={16} />
+              Archiver
+            </ActionButton>
           )}
         </div>
       </div>

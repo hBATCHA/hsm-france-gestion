@@ -1,7 +1,20 @@
+"use client"
+
+import { useState, useTransition } from "react"
 import { createCustomer } from "@/app/actions/customers"
+import { toast } from "sonner"
 import Link from "next/link"
 
 export default function NouveauClientPage() {
+  const [billingAddress, setBillingAddress] = useState("")
+  const [sameAddress, setSameAddress] = useState(true)
+  const [isPending, startTransition] = useTransition()
+
+  function handleSubmit(formData: FormData) {
+    toast.success("Client créé !")
+    startTransition(() => createCustomer(formData))
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -11,11 +24,9 @@ export default function NouveauClientPage() {
         </div>
       </div>
 
-      <form action={createCustomer}>
+      <form action={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Colonne principale */}
           <div className="lg:col-span-2 flex flex-col gap-6">
-            {/* Informations générales */}
             <div className="bg-white border border-[#e2e8f0] rounded-[14px] p-6 shadow-sm">
               <h3 className="text-base font-semibold text-[#111827] mb-5">Informations générales</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -79,7 +90,6 @@ export default function NouveauClientPage() {
               </div>
             </div>
 
-            {/* Adresses et conditions */}
             <div className="bg-white border border-[#e2e8f0] rounded-[14px] p-6 shadow-sm">
               <h3 className="text-base font-semibold text-[#111827] mb-5">Adresses et conditions</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -88,19 +98,38 @@ export default function NouveauClientPage() {
                   <textarea
                     name="billingAddress"
                     rows={3}
+                    value={billingAddress}
+                    onChange={e => setBillingAddress(e.target.value)}
                     placeholder="12 rue des Lilas, 75011 Paris"
                     className="px-4 py-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] resize-none focus:outline-none focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/10"
                   />
                 </div>
+
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
-                  <label className="text-sm font-semibold text-[#111827]">Adresse de livraison</label>
-                  <textarea
-                    name="deliveryAddress"
-                    rows={3}
-                    placeholder="Identique ou différente"
-                    className="px-4 py-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] resize-none focus:outline-none focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/10"
-                  />
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-semibold text-[#111827]">Adresse de livraison</label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={sameAddress}
+                        onChange={e => setSameAddress(e.target.checked)}
+                        className="w-4 h-4 accent-[#166534]"
+                      />
+                      <span className="text-sm text-[#64748b]">Même adresse que la facturation</span>
+                    </label>
+                  </div>
+                  {sameAddress ? (
+                    <input type="hidden" name="deliveryAddress" value={billingAddress} />
+                  ) : (
+                    <textarea
+                      name="deliveryAddress"
+                      rows={3}
+                      placeholder="Adresse de livraison différente"
+                      className="px-4 py-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] resize-none focus:outline-none focus:border-[#166534] focus:ring-2 focus:ring-[#166534]/10"
+                    />
+                  )}
                 </div>
+
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-semibold text-[#111827]">Délai de paiement (jours)</label>
                   <input
@@ -124,7 +153,6 @@ export default function NouveauClientPage() {
             </div>
           </div>
 
-          {/* Colonne droite */}
           <div className="flex flex-col gap-4">
             <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-[14px] p-6">
               <h3 className="text-base font-semibold text-[#111827] mb-4">Statut</h3>
@@ -137,9 +165,10 @@ export default function NouveauClientPage() {
             <div className="flex flex-col gap-3">
               <button
                 type="submit"
-                className="h-11 bg-[#166534] hover:bg-[#14532d] text-white text-sm font-semibold rounded-[10px] transition-colors"
+                disabled={isPending}
+                className="h-11 bg-[#166534] hover:bg-[#14532d] disabled:opacity-60 text-white text-sm font-semibold rounded-[10px] transition-colors"
               >
-                Enregistrer le client
+                {isPending ? "Enregistrement..." : "Enregistrer le client"}
               </button>
               <Link
                 href="/clients"
