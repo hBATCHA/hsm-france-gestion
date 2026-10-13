@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { unarchiveCustomer } from "@/app/actions/customers"
 import { unarchiveProduct } from "@/app/actions/products"
 import { ArchiveRestore } from "lucide-react"
+import ActionButton from "@/components/ActionButton"
 
 export default async function ArchivesPage() {
   const [clients, produits] = await Promise.all([
@@ -36,22 +37,20 @@ export default async function ArchivesPage() {
               </thead>
               <tbody>
                 {clients.map(client => {
-                  const restore = unarchiveCustomer.bind(null, client.id)
                   return (
                     <tr key={client.id} className="border-b border-[#e2e8f0] last:border-0 hover:bg-[#f8fafc] transition-colors">
                       <td className="px-6 py-4 text-sm font-medium text-[#111827]">{client.companyName}</td>
                       <td className="px-6 py-4 text-sm text-[#64748b]">{client.contactName ?? "—"}</td>
                       <td className="px-6 py-4 text-sm text-[#64748b]">{client.email ?? "—"}</td>
                       <td className="px-6 py-4 text-right">
-                        <form action={restore}>
-                          <button
-                            type="submit"
-                            className="flex items-center gap-1.5 h-8 px-3 border border-[#e2e8f0] text-xs font-medium text-[#64748b] rounded-lg hover:bg-[#f0fdf4] hover:text-[#166534] hover:border-[#166534] transition-colors ml-auto"
-                          >
-                            <ArchiveRestore size={14} />
-                            Désarchiver
-                          </button>
-                        </form>
+                        <ActionButton
+                          action={unarchiveCustomer.bind(null, client.id)}
+                          successMessage="Client désarchivé !"
+                          className="flex items-center gap-1.5 h-8 px-3 border border-[#e2e8f0] text-xs font-medium text-[#64748b] rounded-lg hover:bg-[#f0fdf4] hover:text-[#166534] hover:border-[#166534] transition-colors ml-auto"
+                        >
+                          <ArchiveRestore size={14} />
+                          Désarchiver
+                        </ActionButton>
                       </td>
                     </tr>
                   )
@@ -80,7 +79,6 @@ export default async function ArchivesPage() {
               </thead>
               <tbody>
                 {produits.map(produit => {
-                  const restore = unarchiveProduct.bind(null, produit.id)
                   return (
                     <tr key={produit.id} className="border-b border-[#e2e8f0] last:border-0 hover:bg-[#f8fafc] transition-colors">
                       <td className="px-6 py-4">
@@ -92,15 +90,14 @@ export default async function ArchivesPage() {
                         {Number(produit.sellingPrice).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <form action={restore}>
-                          <button
-                            type="submit"
-                            className="flex items-center gap-1.5 h-8 px-3 border border-[#e2e8f0] text-xs font-medium text-[#64748b] rounded-lg hover:bg-[#f0fdf4] hover:text-[#166534] hover:border-[#166534] transition-colors ml-auto"
-                          >
-                            <ArchiveRestore size={14} />
-                            Désarchiver
-                          </button>
-                        </form>
+                        <ActionButton
+                          action={unarchiveProduct.bind(null, produit.id)}
+                          successMessage="Produit désarchivé !"
+                          className="flex items-center gap-1.5 h-8 px-3 border border-[#e2e8f0] text-xs font-medium text-[#64748b] rounded-lg hover:bg-[#f0fdf4] hover:text-[#166534] hover:border-[#166534] transition-colors ml-auto"
+                        >
+                          <ArchiveRestore size={14} />
+                          Désarchiver
+                        </ActionButton>
                       </td>
                     </tr>
                   )

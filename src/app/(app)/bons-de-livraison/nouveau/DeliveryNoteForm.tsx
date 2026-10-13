@@ -4,6 +4,7 @@ import { useTransition, useState } from "react"
 import { Plus, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { createDeliveryNote } from "@/app/actions/deliveryNotes"
+import { toast } from "sonner"
 
 type Product = {
   id: string
@@ -26,6 +27,8 @@ type Line = {
   discount: string
 }
 
+const pf = (v: string) => parseFloat(v.replace(",", ".")) || 0
+
 export default function DeliveryNoteForm({ customers, products }: { customers: Customer[]; products: Product[] }) {
   const [isPending, startTransition] = useTransition()
   const [customerId, setCustomerId] = useState("")
@@ -35,7 +38,6 @@ export default function DeliveryNoteForm({ customers, products }: { customers: C
   const [lines, setLines] = useState<Line[]>([{ productId: "", quantity: "1", unitPrice: "0", vatRate: "5.5", discount: "0" }])
 
   const addLine = () => setLines([...lines, { productId: "", quantity: "1", unitPrice: "0", vatRate: "5.5", discount: "0" }])
-
   const removeLine = (i: number) => setLines(lines.filter((_, idx) => idx !== i))
 
   const updateLine = (i: number, field: keyof Line, value: string) => {
@@ -56,31 +58,32 @@ export default function DeliveryNoteForm({ customers, products }: { customers: C
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    toast.success("Bon de livraison créé !")
     startTransition(async () => {
       await createDeliveryNote({
         customerId,
         date,
         notes,
-        globalDiscount: parseFloat(globalDiscount) || 0,
+        globalDiscount: pf(globalDiscount),
         lines: lines.map(l => ({
           productId: l.productId,
           quantity: parseInt(l.quantity) || 1,
-          unitPrice: parseFloat(l.unitPrice) || 0,
-          vatRate: parseFloat(l.vatRate) || 0,
-          discount: parseFloat(l.discount) || 0,
+          unitPrice: pf(l.unitPrice),
+          vatRate: pf(l.vatRate),
+          discount: pf(l.discount),
         })),
       })
     })
   }
 
-  const gd = 1 - (parseFloat(globalDiscount) || 0) / 100
-  const totalHT = lines.reduce((acc, l) => acc + (parseInt(l.quantity) || 0) * (parseFloat(l.unitPrice) || 0) * (1 - (parseFloat(l.discount) || 0) / 100) * gd, 0)
-  const totalTVA = lines.reduce((acc, l) => acc + (parseInt(l.quantity) || 0) * (parseFloat(l.unitPrice) || 0) * (1 - (parseFloat(l.discount) || 0) / 100) * gd * (parseFloat(l.vatRate) || 0) / 100, 0)
+  const gd = 1 - pf(globalDiscount) / 100
+  const totalHT = lines.reduce((acc, l) => acc + (parseInt(l.quantity) || 0) * pf(l.unitPrice) * (1 - pf(l.discount) / 100) * gd, 0)
+  const totalTVA = lines.reduce((acc, l) => acc + (parseInt(l.quantity) || 0) * pf(l.unitPrice) * (1 - pf(l.discount) / 100) * gd * pf(l.vatRate) / 100, 0)
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 flex flex-col gap-6">
+      <div className="grid grid-cols-1 min-[1300px]:grid-cols-3 gap-6">
+        <div className="min-[1300px]:col-span-2 flex flex-col gap-6">
           <div className="bg-white border border-[#e2e8f0] rounded-[14px] p-6 shadow-sm">
             <h3 className="text-base font-semibold text-[#111827] mb-5">Informations</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -123,80 +126,96 @@ export default function DeliveryNoteForm({ customers, products }: { customers: C
               </button>
             </div>
 
+            {/* En-têtes tableau (grand écran uniquement) */}
+            <div className="hidden min-[1300px]:grid min-[1300px]:grid-cols-[1fr_60px_100px_70px_65px_90px_80px_36px] gap-2 mb-1">
+              <p className="text-xs font-medium text-[#64748b]">Produit</p>
+              <p className="text-xs font-medium text-[#64748b]">Qté</p>
+              <p className="text-xs font-medium text-[#64748b]">Prix HT (€)</p>
+              <p className="text-xs font-medium text-[#64748b]">Remise (%)</p>
+              <p className="text-xs font-medium text-[#64748b]">TVA</p>
+              <p className="text-xs font-medium text-[#64748b]">Total HT</p>
+              <p className="text-xs font-medium text-[#64748b]">Total TVA</p>
+              <span />
+            </div>
+
             <div className="flex flex-col gap-3">
-              <div className="grid grid-cols-[1fr_60px_100px_70px_65px_90px_80px_36px] gap-2">
-                <p className="text-xs font-medium text-[#64748b]">Produit</p>
-                <p className="text-xs font-medium text-[#64748b]">Qté</p>
-                <p className="text-xs font-medium text-[#64748b]">Prix HT (€)</p>
-                <p className="text-xs font-medium text-[#64748b]">Remise (%)</p>
-                <p className="text-xs font-medium text-[#64748b]">TVA (%)</p>
-                <p className="text-xs font-medium text-[#64748b]">Total HT</p>
-                <p className="text-xs font-medium text-[#64748b]">Total TVA</p>
-                <span />
-              </div>
               {lines.map((line, i) => {
-                const lineHT = (parseInt(line.quantity) || 0) * (parseFloat(line.unitPrice) || 0) * (1 - (parseFloat(line.discount) || 0) / 100)
-                const lineTVA = lineHT * (parseFloat(line.vatRate) || 0) / 100
+                const lineHT = (parseInt(line.quantity) || 0) * pf(line.unitPrice) * (1 - pf(line.discount) / 100)
+                const lineTVA = lineHT * pf(line.vatRate) / 100
                 return (
-                <div key={i} className="grid grid-cols-[1fr_60px_100px_70px_65px_90px_80px_36px] gap-2 items-center">
-                  <select
-                    required
-                    value={line.productId}
-                    onChange={e => updateLine(i, "productId", e.target.value)}
-                    className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] bg-white"
-                  >
-                    <option value="">Choisir...</option>
-                    {products.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    required
-                    value={line.quantity}
-                    onChange={e => updateLine(i, "quantity", e.target.value)}
-                    className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] text-center"
-                  />
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    required
-                    value={line.unitPrice}
-                    onChange={e => updateLine(i, "unitPrice", e.target.value)}
-                    className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534]"
-                  />
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={line.discount}
-                    onChange={e => updateLine(i, "discount", e.target.value)}
-                    className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] text-center"
-                  />
-                  <select
-                    required
-                    value={line.vatRate}
-                    onChange={e => updateLine(i, "vatRate", e.target.value)}
-                    className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] bg-white text-center"
-                  >
-                    <option value="5.5">5,5%</option>
-                    <option value="20">20%</option>
-                  </select>
-                  <p className="h-10 flex items-center justify-end text-sm font-medium text-[#111827]">
-                    {lineHT.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
-                  </p>
-                  <p className="h-10 flex items-center justify-end text-sm text-[#64748b]">
-                    {lineTVA.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => removeLine(i)}
-                    disabled={lines.length === 1}
-                    className="h-10 w-9 flex items-center justify-center text-[#94a3b8] hover:text-[#dc2626] disabled:opacity-30 transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+                  <div key={i}>
+                    {/* Grand écran : tout en ligne */}
+                    <div className="hidden min-[1300px]:grid min-[1300px]:grid-cols-[1fr_60px_100px_70px_65px_90px_80px_36px] gap-2 items-center">
+                      <select
+                        required
+                        value={line.productId}
+                        onChange={e => updateLine(i, "productId", e.target.value)}
+                        className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] bg-white min-w-0 w-full"
+                      >
+                        <option value="">Choisir...</option>
+                        {products.map(p => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                      <input type="text" inputMode="numeric" required value={line.quantity} onChange={e => updateLine(i, "quantity", e.target.value)} className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] text-center" />
+                      <input type="text" inputMode="decimal" required value={line.unitPrice} onChange={e => updateLine(i, "unitPrice", e.target.value)} className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534]" />
+                      <input type="text" inputMode="decimal" value={line.discount} onChange={e => updateLine(i, "discount", e.target.value)} className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] text-center" />
+                      <select required value={line.vatRate} onChange={e => updateLine(i, "vatRate", e.target.value)} className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] bg-white">
+                        <option value="5.5">5,5%</option>
+                        <option value="20">20%</option>
+                      </select>
+                      <p className="h-10 flex items-center justify-end text-sm font-medium text-[#111827]">{lineHT.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}</p>
+                      <p className="h-10 flex items-center justify-end text-sm text-[#64748b]">{lineTVA.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}</p>
+                      <button type="button" onClick={() => removeLine(i)} disabled={lines.length === 1} className="h-10 w-9 flex items-center justify-center text-[#94a3b8] hover:text-[#dc2626] disabled:opacity-30 transition-colors">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+
+                    {/* Petit écran : format carte */}
+                    <div className="min-[1300px]:hidden border border-[#e2e8f0] rounded-lg p-4 flex flex-col gap-3">
+                      <div className="flex items-center gap-2">
+                        <select
+                          required
+                          value={line.productId}
+                          onChange={e => updateLine(i, "productId", e.target.value)}
+                          className="flex-1 h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] bg-white min-w-0"
+                        >
+                          <option value="">Choisir un produit...</option>
+                          {products.map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                          ))}
+                        </select>
+                        <button type="button" onClick={() => removeLine(i)} disabled={lines.length === 1} className="h-10 w-9 flex-shrink-0 flex items-center justify-center text-[#94a3b8] hover:text-[#dc2626] disabled:opacity-30 transition-colors">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-medium text-[#64748b]">Qté</label>
+                          <input type="text" inputMode="numeric" required value={line.quantity} onChange={e => updateLine(i, "quantity", e.target.value)} className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] text-center" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-medium text-[#64748b]">Prix HT (€)</label>
+                          <input type="text" inputMode="decimal" required value={line.unitPrice} onChange={e => updateLine(i, "unitPrice", e.target.value)} className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534]" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-medium text-[#64748b]">Remise (%)</label>
+                          <input type="text" inputMode="decimal" value={line.discount} onChange={e => updateLine(i, "discount", e.target.value)} className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] text-center" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-medium text-[#64748b]">TVA</label>
+                          <select required value={line.vatRate} onChange={e => updateLine(i, "vatRate", e.target.value)} className="h-10 px-3 border border-[#cbd5e1] rounded-lg text-sm text-[#111827] focus:outline-none focus:border-[#166534] bg-white">
+                            <option value="5.5">5,5%</option>
+                            <option value="20">20%</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-4 text-sm pt-1 border-t border-[#f1f5f9]">
+                        <span className="text-[#64748b]">Total HT : <span className="font-medium text-[#111827]">{lineHT.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}</span></span>
+                        <span className="text-[#64748b]">TVA : <span className="text-[#111827]">{lineTVA.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}</span></span>
+                      </div>
+                    </div>
+                  </div>
                 )
               })}
             </div>

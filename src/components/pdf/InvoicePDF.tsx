@@ -250,7 +250,9 @@ type InvoiceData = {
 }
 
 function fmt(n: number) {
-  return n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"
+  return n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    .replace(/\u202f/g, " ")
+    .replace(/\u00a0/g, " ") + " €"
 }
 
 function fmtDate(d: Date | string) {

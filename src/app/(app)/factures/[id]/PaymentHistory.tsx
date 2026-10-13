@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { Pencil, Trash2, Check, X } from "lucide-react"
 import { updatePayment, deletePayment } from "@/app/actions/payments"
+import { toast } from "sonner"
 
 type Payment = {
   id: string
@@ -32,6 +33,7 @@ export default function PaymentHistory({ payments, invoiceId }: { payments: Paym
               onSubmit={e => {
                 e.preventDefault()
                 const formData = new FormData(e.currentTarget)
+                toast.success("Paiement modifié !")
                 startTransition(async () => {
                   await updatePayment(p.id, invoiceId, formData)
                   setEditingId(null)
@@ -98,6 +100,7 @@ export default function PaymentHistory({ payments, invoiceId }: { payments: Paym
               </button>
               <form onSubmit={e => {
                 e.preventDefault()
+                toast.success("Paiement supprimé !")
                 startTransition(async () => {
                   await deletePayment(p.id, invoiceId)
                 })

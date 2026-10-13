@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { archiveProduct } from "@/app/actions/products"
 import { Pencil, Archive } from "lucide-react"
+import ActionButton from "@/components/ActionButton"
 
 export default async function ProduitDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -35,12 +36,14 @@ export default async function ProduitDetailPage({ params }: { params: Promise<{ 
             Modifier
           </Link>
           {!produit.archived && (
-            <form action={async () => { "use server"; await archiveProduct(id) }}>
-              <button type="submit" className="flex items-center gap-2 h-10 px-4 border border-[#e2e8f0] text-[#64748b] text-sm font-semibold rounded-[10px] hover:bg-[#fef2f2] hover:text-[#dc2626] hover:border-[#fecaca] transition-colors">
-                <Archive size={16} />
-                Archiver
-              </button>
-            </form>
+            <ActionButton
+              action={archiveProduct.bind(null, id)}
+              successMessage="Produit archivé !"
+              className="flex items-center gap-2 h-10 px-4 border border-[#e2e8f0] text-[#64748b] text-sm font-semibold rounded-[10px] hover:bg-[#fef2f2] hover:text-[#dc2626] hover:border-[#fecaca] transition-colors"
+            >
+              <Archive size={16} />
+              Archiver
+            </ActionButton>
           )}
         </div>
       </div>
