@@ -5,15 +5,16 @@ import { generateDeliveryNotePDF } from "@/components/pdf/DeliveryNotePDF"
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const [bl, settings] = await Promise.all([
-    prisma.deliveryNote.findUnique({
-      where: { id },
-      include: { customer: true, lines: { include: { product: true } } },
-    }),
-    prisma.companySettings.findUnique({ where: { id: "default" } }),
-  ])
+  const bl = await prisma.deliveryNote.findUnique({
+    where: { id },
+    include: { customer: true, lines: { include: { product: true } } },
+  })
 
   if (!bl) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
+  const settings = await prisma.companySettings.findFirst({
+    where: bl.companySettingsId ? { id: bl.companySettingsId } : { isActive: true },
+  })
 
   const gd = 1 - Number(bl.globalDiscount) / 100
   const totalHT = bl.lines.reduce((acc, l) => acc + l.quantity * Number(l.unitPrice) * (1 - Number(l.discount) / 100) * gd, 0)

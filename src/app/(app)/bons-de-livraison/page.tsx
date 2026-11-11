@@ -1,12 +1,19 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { Plus, ClipboardList } from "lucide-react"
+import { CompanyFilter } from "@/components/CompanyFilter"
 
-export default async function BonsLivraisonPage() {
-  const bons = await prisma.deliveryNote.findMany({
-    include: { customer: true, lines: true },
-    orderBy: { createdAt: "desc" },
-  })
+export default async function BonsLivraisonPage({ searchParams }: { searchParams: Promise<{ company?: string }> }) {
+  const { company } = await searchParams
+  const [bons, companies] = await Promise.all([
+    prisma.deliveryNote.findMany({
+      where: company ? { companySettingsId: company } : undefined,
+      include: { customer: true, lines: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.companySettings.findMany(),
+  ])
+  const companyMap = Object.fromEntries(companies.map(c => [c.id, c.name]))
 
   return (
     <div>
@@ -15,13 +22,16 @@ export default async function BonsLivraisonPage() {
           <h2 className="text-2xl font-bold text-[#111827]">Bons de livraison</h2>
           <p className="text-sm text-[#64748b] mt-1">{bons.length} bon{bons.length > 1 ? "s" : ""}</p>
         </div>
-        <Link
+        <div className="flex items-center gap-3">
+          <CompanyFilter companies={companies} basePath="/bons-de-livraison" />
+          <Link
           href="/bons-de-livraison/nouveau"
           className="flex items-center gap-2 h-11 px-5 bg-[#166534] hover:bg-[#14532d] text-white text-sm font-semibold rounded-[10px] transition-colors"
         >
           <Plus size={18} />
           Nouveau BL
         </Link>
+        </div>
       </div>
 
       {bons.length === 0 ? (
@@ -44,6 +54,7 @@ export default async function BonsLivraisonPage() {
               <tr className="bg-[#f8fafc]">
                 <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Numéro</th>
                 <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Client</th>
+                <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Société</th>
                 <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Date</th>
                 <th className="text-right text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Total HT</th>
                 <th className="text-right text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Total TTC</th>
@@ -63,6 +74,9 @@ export default async function BonsLivraisonPage() {
                     </td>
                     <td className="px-6 py-4 border-b border-[#e2e8f0] text-sm text-[#64748b]">
                       {bon.customer.companyName}
+                    </td>
+                    <td className="px-6 py-4 border-b border-[#e2e8f0] text-sm text-[#64748b]">
+                      {companyMap[bon.companySettingsId ?? ""] ?? "—"}
                     </td>
                     <td className="px-6 py-4 border-b border-[#e2e8f0] text-sm text-[#64748b]">
                       {new Date(bon.date).toLocaleDateString("fr-FR")}

@@ -33,6 +33,7 @@ export async function createInvoiceFromDeliveryNote(deliveryNoteId: string) {
       totalHT,
       totalTVA,
       totalTTC,
+      companySettingsId: bl.companySettingsId ?? null,
       lines: {
         create: bl.lines.map(l => ({
           productId: l.productId,

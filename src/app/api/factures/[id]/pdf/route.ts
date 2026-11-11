@@ -6,15 +6,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params
   const original = req.nextUrl.searchParams.get("original") === "true"
 
-  const [facture, settings] = await Promise.all([
-    prisma.invoice.findUnique({
-      where: { id },
-      include: { customer: true, lines: true, deliveryNote: true, payments: { orderBy: { date: "asc" } } },
-    }),
-    prisma.companySettings.findUnique({ where: { id: "default" } }),
-  ])
+  const facture = await prisma.invoice.findUnique({
+    where: { id },
+    include: { customer: true, lines: true, deliveryNote: true, payments: { orderBy: { date: "asc" } } },
+  })
 
   if (!facture) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
+  const settings = await prisma.companySettings.findFirst({
+    where: facture.companySettingsId ? { id: facture.companySettingsId } : { isActive: true },
+  })
 
   const company = {
     name: settings?.name ?? "",
