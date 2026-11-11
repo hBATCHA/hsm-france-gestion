@@ -1,12 +1,19 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { FileText } from "lucide-react"
+import { CompanyFilter } from "@/components/CompanyFilter"
 
-export default async function FacturesPage() {
-  const factures = await prisma.invoice.findMany({
-    include: { customer: true },
-    orderBy: { createdAt: "desc" },
-  })
+export default async function FacturesPage({ searchParams }: { searchParams: Promise<{ company?: string }> }) {
+  const { company } = await searchParams
+  const [factures, companies] = await Promise.all([
+    prisma.invoice.findMany({
+      where: company ? { companySettingsId: company } : undefined,
+      include: { customer: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.companySettings.findMany(),
+  ])
+  const companyMap = Object.fromEntries(companies.map(c => [c.id, c.name]))
 
   const totalEnAttente = factures
     .filter(f => f.status === "en attente")
@@ -19,6 +26,7 @@ export default async function FacturesPage() {
           <h2 className="text-2xl font-bold text-[#111827]">Factures</h2>
           <p className="text-sm text-[#64748b] mt-1">{factures.length} facture{factures.length > 1 ? "s" : ""}</p>
         </div>
+        <CompanyFilter companies={companies} basePath="/factures" />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -59,6 +67,7 @@ export default async function FacturesPage() {
               <tr className="bg-[#f8fafc]">
                 <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Numéro</th>
                 <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Client</th>
+                <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Société</th>
                 <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Date</th>
                 <th className="text-left text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Échéance</th>
                 <th className="text-right text-sm font-semibold text-[#334155] px-6 py-4 border-b border-[#e2e8f0]">Total HT</th>
@@ -78,6 +87,9 @@ export default async function FacturesPage() {
                     </td>
                     <td className="px-6 py-4 border-b border-[#e2e8f0] text-sm text-[#64748b]">
                       {facture.customer.companyName}
+                    </td>
+                    <td className="px-6 py-4 border-b border-[#e2e8f0] text-sm text-[#64748b]">
+                      {companyMap[facture.companySettingsId ?? ""] ?? "—"}
                     </td>
                     <td className="px-6 py-4 border-b border-[#e2e8f0] text-sm text-[#64748b]">
                       {new Date(facture.date).toLocaleDateString("fr-FR")}

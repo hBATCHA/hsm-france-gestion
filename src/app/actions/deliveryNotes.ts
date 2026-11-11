@@ -26,6 +26,7 @@ export async function createDeliveryNote(data: {
   if (lines.length === 0 || lines.some(l => !l.productId)) throw new Error("Toutes les lignes doivent avoir un produit")
 
   const number = await generateBLNumber()
+  const activeCompany = await prisma.companySettings.findFirst({ where: { isActive: true } })
 
   const deliveryNote = await prisma.deliveryNote.create({
     data: {
@@ -34,6 +35,7 @@ export async function createDeliveryNote(data: {
       customerId,
       notes: notes || null,
       globalDiscount,
+      companySettingsId: activeCompany?.id ?? null,
       lines: {
         create: lines.map(l => ({
           productId: l.productId,

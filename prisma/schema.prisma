@@ -9,7 +9,7 @@ datasource db {
 }
 
 model CompanySettings {
-  id        String   @id @default("default")
+  id        String   @id @default(cuid())
   name      String   @default("")
   legalForm String   @default("")
   capital   String   @default("")
@@ -22,6 +22,7 @@ model CompanySettings {
   bank      String   @default("")
   email     String   @default("")
   phone     String   @default("")
+  isActive  Boolean  @default(false)
   updatedAt DateTime @updatedAt
 }
 
@@ -73,18 +74,19 @@ model Customer {
 }
 
 model DeliveryNote {
-  id             String             @id @default(cuid())
-  number         String             @unique
-  date           DateTime           @default(now())
-  customerId     String
-  customer       Customer           @relation(fields: [customerId], references: [id])
-  lines          DeliveryNoteLine[]
-  notes          String?
-  globalDiscount Decimal            @default(0) @db.Decimal(5, 2)
-  invoiced       Boolean            @default(false)
-  invoice        Invoice?
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  id                String             @id @default(cuid())
+  number            String             @unique
+  date              DateTime           @default(now())
+  customerId        String
+  customer          Customer           @relation(fields: [customerId], references: [id])
+  lines             DeliveryNoteLine[]
+  notes             String?
+  globalDiscount    Decimal            @default(0) @db.Decimal(5, 2)
+  invoiced          Boolean            @default(false)
+  invoice           Invoice?
+  companySettingsId String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 }
 
 model DeliveryNoteLine {
@@ -100,25 +102,26 @@ model DeliveryNoteLine {
 }
 
 model Invoice {
-  id             String        @id @default(cuid())
-  number         String        @unique
-  date           DateTime      @default(now())
-  dueDate        DateTime
-  customerId     String
-  customer       Customer      @relation(fields: [customerId], references: [id])
-  deliveryNoteId String?       @unique
-  deliveryNote   DeliveryNote? @relation(fields: [deliveryNoteId], references: [id])
-  lines          InvoiceLine[]
-  payments       Payment[]
-  status         String        @default("en attente")
-  globalDiscount Decimal       @default(0) @db.Decimal(5, 2)
-  totalHT        Decimal       @db.Decimal(10, 2)
-  totalTVA       Decimal       @db.Decimal(10, 2)
-  totalTTC       Decimal       @db.Decimal(10, 2)
-  notes          String?
-  paidAt         DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id                String        @id @default(cuid())
+  number            String        @unique
+  date              DateTime      @default(now())
+  dueDate           DateTime
+  customerId        String
+  customer          Customer      @relation(fields: [customerId], references: [id])
+  deliveryNoteId    String?       @unique
+  deliveryNote      DeliveryNote? @relation(fields: [deliveryNoteId], references: [id])
+  lines             InvoiceLine[]
+  payments          Payment[]
+  status            String        @default("en attente")
+  globalDiscount    Decimal       @default(0) @db.Decimal(5, 2)
+  totalHT           Decimal       @db.Decimal(10, 2)
+  totalTVA          Decimal       @db.Decimal(10, 2)
+  totalTTC          Decimal       @db.Decimal(10, 2)
+  notes             String?
+  paidAt            DateTime?
+  companySettingsId String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 }
 
 model Payment {
