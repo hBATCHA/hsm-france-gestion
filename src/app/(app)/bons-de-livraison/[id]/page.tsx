@@ -33,6 +33,9 @@ export default async function BonLivraisonDetailPage({ params }: { params: Promi
             ) : (
               <span className="inline-flex items-center h-7 px-3 rounded-full text-xs font-semibold bg-[#fff7ed] text-[#d97706]">À facturer</span>
             )}
+            {bl.archived && (
+              <span className="inline-flex items-center h-7 px-3 rounded-full text-xs font-semibold bg-[#f1f5f9] text-[#64748b]">Archivé</span>
+            )}
           </div>
           <p className="text-sm text-[#64748b]">
             {new Date(bl.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
