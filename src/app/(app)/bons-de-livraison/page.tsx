@@ -7,7 +7,7 @@ export default async function BonsLivraisonPage({ searchParams }: { searchParams
   const { company } = await searchParams
   const [bons, companies] = await Promise.all([
     prisma.deliveryNote.findMany({
-      where: company ? { companySettingsId: company } : undefined,
+      where: company ? { companySettingsId: company, archived: false } : { archived: false },
       include: { customer: true, lines: true },
       orderBy: { createdAt: "desc" },
     }),
