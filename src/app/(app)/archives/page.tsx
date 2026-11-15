@@ -1,20 +1,22 @@
 import { prisma } from "@/lib/prisma"
 import { unarchiveCustomer } from "@/app/actions/customers"
 import { unarchiveProduct } from "@/app/actions/products"
-import { ArchiveRestore } from "lucide-react"
+import { archiveDeliveryNote, deleteDeliveryNote } from "@/app/actions/deliveryNotes"
+import { ArchiveRestore, Trash2 } from "lucide-react"
 import ActionButton from "@/components/ActionButton"
 
 export default async function ArchivesPage() {
-  const [clients, produits] = await Promise.all([
+  const [clients, produits, bonsLivraison] = await Promise.all([
     prisma.customer.findMany({ where: { archived: true }, orderBy: { companyName: "asc" } }),
     prisma.product.findMany({ where: { archived: true }, orderBy: { name: "asc" } }),
+    prisma.deliveryNote.findMany({ where: { archived: true }, include: { customer: true }, orderBy: { createdAt: "desc" } }),
   ])
 
   return (
     <div>
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-[#111827]">Archives</h2>
-        <p className="text-sm text-[#64748b] mt-1">{clients.length + produits.length} élément{clients.length + produits.length > 1 ? "s" : ""} archivé{clients.length + produits.length > 1 ? "s" : ""}</p>
+        <p className="text-sm text-[#64748b] mt-1">{clients.length + produits.length + bonsLivraison.length} élément{clients.length + produits.length + bonsLivraison.length > 1 ? "s" : ""} archivé{clients.length + produits.length + bonsLivraison.length > 1 ? "s" : ""}</p>
       </div>
 
       <div className="flex flex-col gap-6">
@@ -102,6 +104,55 @@ export default async function ArchivesPage() {
                     </tr>
                   )
                 })}
+              </tbody>
+            </table>
+          )}
+        </div>
+        {/* Bons de livraison archivés */}
+        <div className="bg-white border border-[#e2e8f0] rounded-[14px] overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-[#e2e8f0] bg-[#f8fafc]">
+            <h3 className="text-sm font-semibold text-[#111827]">Bons de livraison archivés ({bonsLivraison.length})</h3>
+          </div>
+          {bonsLivraison.length === 0 ? (
+            <p className="px-6 py-8 text-sm text-[#94a3b8] text-center">Aucun bon de livraison archivé</p>
+          ) : (
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-[#f8fafc]">
+                  <th className="text-left text-sm font-semibold text-[#334155] px-6 py-3 border-b border-[#e2e8f0]">Numéro</th>
+                  <th className="text-left text-sm font-semibold text-[#334155] px-6 py-3 border-b border-[#e2e8f0]">Client</th>
+                  <th className="text-left text-sm font-semibold text-[#334155] px-6 py-3 border-b border-[#e2e8f0]">Date</th>
+                  <th className="px-6 py-3 border-b border-[#e2e8f0]" />
+                </tr>
+              </thead>
+              <tbody>
+                {bonsLivraison.map(bl => (
+                  <tr key={bl.id} className="border-b border-[#e2e8f0] last:border-0 hover:bg-[#f8fafc] transition-colors">
+                    <td className="px-6 py-4 text-sm font-medium text-[#111827]">{bl.number}</td>
+                    <td className="px-6 py-4 text-sm text-[#64748b]">{bl.customer.companyName}</td>
+                    <td className="px-6 py-4 text-sm text-[#64748b]">{new Date(bl.date).toLocaleDateString("fr-FR")}</td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <ActionButton
+                          action={archiveDeliveryNote.bind(null, bl.id, false)}
+                          successMessage="BL désarchivé !"
+                          className="flex items-center gap-1.5 h-8 px-3 border border-[#e2e8f0] text-xs font-medium text-[#64748b] rounded-lg hover:bg-[#f0fdf4] hover:text-[#166534] hover:border-[#166534] transition-colors"
+                        >
+                          <ArchiveRestore size={14} />
+                          Désarchiver
+                        </ActionButton>
+                        <ActionButton
+                          action={deleteDeliveryNote.bind(null, bl.id)}
+                          successMessage="BL supprimé"
+                          className="flex items-center gap-1.5 h-8 px-3 border border-[#fecaca] text-xs font-medium text-[#dc2626] rounded-lg hover:bg-[#fef2f2] transition-colors"
+                        >
+                          <Trash2 size={14} />
+                          Supprimer
+                        </ActionButton>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           )}

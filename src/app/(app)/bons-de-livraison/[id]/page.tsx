@@ -2,19 +2,24 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { createInvoiceFromDeliveryNote } from "@/app/actions/invoices"
-import { FileText, Download } from "lucide-react"
+import { archiveDeliveryNote } from "@/app/actions/deliveryNotes"
+import { FileText, Download, Archive, ArchiveRestore } from "lucide-react"
 import ActionButton from "@/components/ActionButton"
+import BLCompanySelect from "./BLCompanySelect"
 
 export default async function BonLivraisonDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const bl = await prisma.deliveryNote.findUnique({
-    where: { id },
-    include: {
-      customer: true,
-      lines: { include: { product: true } },
-      invoice: true,
-    },
-  })
+  const [bl, companies] = await Promise.all([
+    prisma.deliveryNote.findUnique({
+      where: { id },
+      include: {
+        customer: true,
+        lines: { include: { product: true } },
+        invoice: true,
+      },
+    }),
+    prisma.companySettings.findMany({ select: { id: true, name: true } }),
+  ])
 
   if (!bl) notFound()
 
@@ -33,12 +38,25 @@ export default async function BonLivraisonDetailPage({ params }: { params: Promi
             ) : (
               <span className="inline-flex items-center h-7 px-3 rounded-full text-xs font-semibold bg-[#fff7ed] text-[#d97706]">À facturer</span>
             )}
+            {bl.archived && (
+              <span className="inline-flex items-center h-7 px-3 rounded-full text-xs font-semibold bg-[#f1f5f9] text-[#64748b]">Archivé</span>
+            )}
           </div>
           <p className="text-sm text-[#64748b]">
             {new Date(bl.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <ActionButton
+            action={archiveDeliveryNote.bind(null, bl.id, !bl.archived)}
+            successMessage={bl.archived ? "BL désarchivé" : "BL archivé"}
+            className={bl.archived
+              ? "flex items-center gap-2 h-10 px-4 border border-[#f59e0b] text-[#d97706] text-sm font-semibold rounded-[10px] hover:bg-[#fffbeb] transition-colors"
+              : "flex items-center gap-2 h-10 px-4 border border-[#e2e8f0] text-[#64748b] text-sm font-semibold rounded-[10px] hover:bg-[#f8fafc] transition-colors"
+            }
+          >
+            {bl.archived ? <><ArchiveRestore size={16} />Désarchiver</> : <><Archive size={16} />Archiver</>}
+          </ActionButton>
           <Link
             href={`/api/bons-de-livraison/${bl.id}/pdf`}
             target="_blank"
@@ -125,6 +143,15 @@ export default async function BonLivraisonDetailPage({ params }: { params: Promi
             {bl.customer.phone && (
               <p className="text-sm text-[#64748b] mt-0.5">{bl.customer.phone}</p>
             )}
+          </div>
+
+          <div className="bg-white border border-[#e2e8f0] rounded-[14px] p-6 shadow-sm">
+            <h3 className="text-base font-semibold text-[#111827] mb-4">Société</h3>
+            <BLCompanySelect
+              blId={bl.id}
+              companies={companies}
+              currentCompanyId={bl.companySettingsId}
+            />
           </div>
 
           <div className="bg-white border border-[#e2e8f0] rounded-[14px] p-6 shadow-sm">
