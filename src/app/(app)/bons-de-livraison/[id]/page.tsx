@@ -2,9 +2,9 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { createInvoiceFromDeliveryNote } from "@/app/actions/invoices"
-import { FileText, Download } from "lucide-react"
+import { archiveDeliveryNote } from "@/app/actions/deliveryNotes"
+import { FileText, Download, Archive, ArchiveRestore, Pencil } from "lucide-react"
 import ActionButton from "@/components/ActionButton"
-
 export default async function BonLivraisonDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const bl = await prisma.deliveryNote.findUnique({
@@ -39,6 +39,25 @@ export default async function BonLivraisonDetailPage({ params }: { params: Promi
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {!bl.invoiced && (
+            <Link
+              href={`/bons-de-livraison/${bl.id}/modifier`}
+              className="flex items-center gap-2 h-10 px-4 border border-[#e2e8f0] text-[#64748b] text-sm font-semibold rounded-[10px] hover:bg-[#f8fafc] transition-colors"
+            >
+              <Pencil size={16} />
+              Modifier
+            </Link>
+          )}
+          <ActionButton
+            action={archiveDeliveryNote.bind(null, bl.id, !bl.archived)}
+            successMessage={bl.archived ? "BL désarchivé" : "BL archivé"}
+            className={bl.archived
+              ? "flex items-center gap-2 h-10 px-4 border border-[#f59e0b] text-[#d97706] text-sm font-semibold rounded-[10px] hover:bg-[#fffbeb] transition-colors"
+              : "flex items-center gap-2 h-10 px-4 border border-[#e2e8f0] text-[#64748b] text-sm font-semibold rounded-[10px] hover:bg-[#f8fafc] transition-colors"
+            }
+          >
+            {bl.archived ? <><ArchiveRestore size={16} />Désarchiver</> : <><Archive size={16} />Archiver</>}
+          </ActionButton>
           <Link
             href={`/api/bons-de-livraison/${bl.id}/pdf`}
             target="_blank"
