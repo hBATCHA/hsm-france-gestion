@@ -5,8 +5,13 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
 async function generateBLNumber(): Promise<string> {
-  const count = await prisma.deliveryNote.count()
-  const num = String(count + 1).padStart(4, "0")
+  const last = await prisma.deliveryNote.findFirst({ orderBy: { number: "desc" } })
+  let seq = 1
+  if (last) {
+    const match = last.number.match(/-(\d{4})$/)
+    if (match) seq = parseInt(match[1]) + 1
+  }
+  const num = String(seq).padStart(4, "0")
   const now = new Date()
   const year = now.getFullYear()
   const month = String(now.getMonth() + 1).padStart(2, "0")
@@ -58,4 +63,29 @@ export async function createDeliveryNote(data: {
   revalidatePath("/bons-de-livraison")
   revalidatePath("/produits")
   redirect(`/bons-de-livraison/${deliveryNote.id}`)
+}
+
+export async function archiveDeliveryNote(id: string, archived: boolean) {
+  await prisma.deliveryNote.update({
+    where: { id },
+    data: { archived },
+  })
+  revalidatePath(`/bons-de-livraison/${id}`)
+  revalidatePath("/bons-de-livraison")
+  revalidatePath("/archives")
+}
+
+export async function deleteDeliveryNote(id: string) {
+  await prisma.deliveryNote.delete({ where: { id } })
+  revalidatePath("/archives")
+  revalidatePath("/bons-de-livraison")
+}
+
+export async function updateDeliveryNoteCompany(id: string, companySettingsId: string | null) {
+  await prisma.deliveryNote.update({
+    where: { id },
+    data: { companySettingsId },
+  })
+  revalidatePath(`/bons-de-livraison/${id}`)
+  revalidatePath("/bons-de-livraison")
 }
