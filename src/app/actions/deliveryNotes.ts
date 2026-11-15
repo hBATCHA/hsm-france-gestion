@@ -65,6 +65,69 @@ export async function createDeliveryNote(data: {
   redirect(`/bons-de-livraison/${deliveryNote.id}`)
 }
 
+export async function updateDeliveryNote(id: string, data: {
+  customerId: string
+  date: string
+  notes: string
+  globalDiscount: number
+  companySettingsId: string | null
+  lines: { productId: string; quantity: number; unitPrice: number; vatRate: number; discount: number }[]
+}) {
+  const { customerId, date, notes, globalDiscount, companySettingsId, lines } = data
+
+  if (!customerId) throw new Error("Client obligatoire")
+  if (lines.length === 0 || lines.some(l => !l.productId)) throw new Error("Toutes les lignes doivent avoir un produit")
+
+  const existing = await prisma.deliveryNote.findUnique({
+    where: { id },
+    include: { lines: true },
+  })
+  if (!existing) throw new Error("BL introuvable")
+
+  await prisma.$transaction(async (tx) => {
+    for (const line of existing.lines) {
+      await tx.product.update({
+        where: { id: line.productId },
+        data: { stock: { increment: line.quantity } },
+      })
+    }
+
+    await tx.deliveryNoteLine.deleteMany({ where: { deliveryNoteId: id } })
+
+    await tx.deliveryNote.update({
+      where: { id },
+      data: {
+        customerId,
+        date: date ? new Date(date) : new Date(),
+        notes: notes || null,
+        globalDiscount,
+        companySettingsId: companySettingsId ?? null,
+        lines: {
+          create: lines.map(l => ({
+            productId: l.productId,
+            quantity: l.quantity,
+            unitPrice: l.unitPrice,
+            vatRate: l.vatRate,
+            discount: l.discount,
+          })),
+        },
+      },
+    })
+
+    for (const line of lines) {
+      await tx.product.update({
+        where: { id: line.productId },
+        data: { stock: { decrement: line.quantity } },
+      })
+    }
+  })
+
+  revalidatePath(`/bons-de-livraison/${id}`)
+  revalidatePath("/bons-de-livraison")
+  redirect(`/bons-de-livraison/${id}`)
+}
+
+
 export async function archiveDeliveryNote(id: string, archived: boolean) {
   await prisma.deliveryNote.update({
     where: { id },
