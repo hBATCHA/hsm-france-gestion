@@ -3,23 +3,18 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { createInvoiceFromDeliveryNote } from "@/app/actions/invoices"
 import { archiveDeliveryNote } from "@/app/actions/deliveryNotes"
-import { FileText, Download, Archive, ArchiveRestore } from "lucide-react"
+import { FileText, Download, Archive, ArchiveRestore, Pencil } from "lucide-react"
 import ActionButton from "@/components/ActionButton"
-import BLCompanySelect from "./BLCompanySelect"
-
 export default async function BonLivraisonDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [bl, companies] = await Promise.all([
-    prisma.deliveryNote.findUnique({
-      where: { id },
-      include: {
-        customer: true,
-        lines: { include: { product: true } },
-        invoice: true,
-      },
-    }),
-    prisma.companySettings.findMany({ select: { id: true, name: true } }),
-  ])
+  const bl = await prisma.deliveryNote.findUnique({
+    where: { id },
+    include: {
+      customer: true,
+      lines: { include: { product: true } },
+      invoice: true,
+    },
+  })
 
   if (!bl) notFound()
 
@@ -47,6 +42,15 @@ export default async function BonLivraisonDetailPage({ params }: { params: Promi
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {!bl.invoiced && (
+            <Link
+              href={`/bons-de-livraison/${bl.id}/modifier`}
+              className="flex items-center gap-2 h-10 px-4 border border-[#e2e8f0] text-[#64748b] text-sm font-semibold rounded-[10px] hover:bg-[#f8fafc] transition-colors"
+            >
+              <Pencil size={16} />
+              Modifier
+            </Link>
+          )}
           <ActionButton
             action={archiveDeliveryNote.bind(null, bl.id, !bl.archived)}
             successMessage={bl.archived ? "BL désarchivé" : "BL archivé"}
@@ -143,15 +147,6 @@ export default async function BonLivraisonDetailPage({ params }: { params: Promi
             {bl.customer.phone && (
               <p className="text-sm text-[#64748b] mt-0.5">{bl.customer.phone}</p>
             )}
-          </div>
-
-          <div className="bg-white border border-[#e2e8f0] rounded-[14px] p-6 shadow-sm">
-            <h3 className="text-base font-semibold text-[#111827] mb-4">Société</h3>
-            <BLCompanySelect
-              blId={bl.id}
-              companies={companies}
-              currentCompanyId={bl.companySettingsId}
-            />
           </div>
 
           <div className="bg-white border border-[#e2e8f0] rounded-[14px] p-6 shadow-sm">
