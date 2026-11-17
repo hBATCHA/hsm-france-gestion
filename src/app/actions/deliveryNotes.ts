@@ -139,6 +139,9 @@ export async function archiveDeliveryNote(id: string, archived: boolean) {
 }
 
 export async function deleteDeliveryNote(id: string) {
+  const bl = await prisma.deliveryNote.findUnique({ where: { id }, include: { invoice: true } })
+  if (!bl) throw new Error("BL introuvable")
+  if (bl.invoice) throw new Error("Impossible de supprimer un BL lié à une facture")
   await prisma.deliveryNote.delete({ where: { id } })
   revalidatePath("/archives")
   revalidatePath("/bons-de-livraison")
