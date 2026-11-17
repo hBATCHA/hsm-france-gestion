@@ -141,14 +141,16 @@ export default async function ArchivesPage() {
                           <ArchiveRestore size={14} />
                           Désarchiver
                         </ActionButton>
-                        <ActionButton
-                          action={deleteDeliveryNote.bind(null, bl.id)}
-                          successMessage="BL supprimé"
-                          className="flex items-center gap-1.5 h-8 px-3 border border-[#fecaca] text-xs font-medium text-[#dc2626] rounded-lg hover:bg-[#fef2f2] transition-colors"
-                        >
-                          <Trash2 size={14} />
-                          Supprimer
-                        </ActionButton>
+                        {!bl.invoiced && (
+                          <ActionButton
+                            action={deleteDeliveryNote.bind(null, bl.id)}
+                            successMessage="BL supprimé"
+                            className="flex items-center gap-1.5 h-8 px-3 border border-[#fecaca] text-xs font-medium text-[#dc2626] rounded-lg hover:bg-[#fef2f2] transition-colors"
+                          >
+                            <Trash2 size={14} />
+                            Supprimer
+                          </ActionButton>
+                        )}
                       </div>
                     </td>
                   </tr>
